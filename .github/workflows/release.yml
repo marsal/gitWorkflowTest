@@ -1,0 +1,36 @@
+name: Create Release with Git Log
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Generate Git Log Changelog
+        id: generate-changelog
+        run: |
+          # Obtiene el último tag antes del actual
+          last_tag=$(git describe --tags --abbrev=0)
+          # Genera el changelog basado en commits desde el último tag
+          log=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an, %h)")
+          echo "Changelog desde $last_tag:" > changelog.md
+          echo "$log" >> changelog.md
+          echo "changelog=$(cat changelog.md)" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }} # Usa el tag como nombre
+          release_name: ${{ github.ref_name }} # Usa el tag como nombre de la release
+          body: |
+            ## Changelog
+            ${{ env.changelog }}
+          draft: false
+          prerelease: false
