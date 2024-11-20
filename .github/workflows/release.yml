@@ -1,9 +1,9 @@
-name: Create Release with Git Log
+name: Create Release with Template and Git Log
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*" # Escucha tags en formato semántico
 
 jobs:
   create-release:
@@ -11,26 +11,32 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Generate Git Log Changelog
         id: generate-changelog
         run: |
-          # Obtiene el último tag antes del actual
           last_tag=$(git describe --tags --abbrev=0)
-          # Genera el changelog basado en commits desde el último tag
           log=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an, %h)")
-          echo "Changelog desde $last_tag:" > changelog.md
-          echo "$log" >> changelog.md
+          echo "$log" > changelog.md
           echo "changelog=$(cat changelog.md)" >> $GITHUB_ENV
+
+      - name: Load Release Template
+        id: load-template
+        run: |
+          template=$(cat release-template.md)
+          template=${template//\{\{tag_name\}\}/${{ github.ref_name }}}
+          changelog=$(cat changelog.md)
+          template=${template//\{\{changelog\}\}/${changelog}}
+          echo "release_body=$template" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.ref_name }} # Usa el tag como nombre
           release_name: ${{ github.ref_name }} # Usa el tag como nombre de la release
-          body: |
-            ## Changelog
-            ${{ env.changelog }}
+          body: ${{ env.release_body }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Añadir el token aquí
