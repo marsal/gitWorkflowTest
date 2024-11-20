@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*" # Escucha tags en formato semántico
+permissions:
+  contents: write
 
 jobs:
   create-release:
