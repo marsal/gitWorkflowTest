@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*" # Escucha tags en formato semántico
+
 permissions:
   contents: write
 
@@ -24,15 +25,16 @@ jobs:
           log=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an, %h)")
           echo "Changelog desde $last_tag:" > changelog.md
           echo "$log" >> changelog.md
-          echo "changelog=$(cat changelog.md)" >> $GITHUB_ENV
+          # Exporta el contenido del changelog a una variable de entorno
+          echo "release_body=$(cat changelog.md)" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.ref_name }} # Usa el tag como nombre
-          release_name: ${{ github.ref_name }} # Usa el tag como nombre de la release
-          body: ${{ env.release_body }}
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: ${{ env.release_body }} # Asigna la variable generada al body
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Añadir el token aquí
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
