@@ -16,19 +16,13 @@ jobs:
       - name: Generate Git Log Changelog
         id: generate-changelog
         run: |
+          # Obtiene el último tag antes del actual
           last_tag=$(git describe --tags --abbrev=0)
+          # Genera el changelog basado en commits desde el último tag
           log=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an, %h)")
-          echo "$log" > changelog.md
+          echo "Changelog desde $last_tag:" > changelog.md
+          echo "$log" >> changelog.md
           echo "changelog=$(cat changelog.md)" >> $GITHUB_ENV
-
-      - name: Load Release Template
-        id: load-template
-        run: |
-          template=$(cat release-template.md)
-          template=${template//\{\{tag_name\}\}/${{ github.ref_name }}}
-          changelog=$(cat changelog.md)
-          template=${template//\{\{changelog\}\}/${changelog}}
-          echo "release_body=$template" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
