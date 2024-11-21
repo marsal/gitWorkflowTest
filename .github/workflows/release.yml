@@ -19,30 +19,38 @@ jobs:
       - name: Obtener el último tag anterior
         id: get_last_tag
         run: |
-          last_tag=$(git tag --list --sort=-creatordate | sed -n '2p')
+          # Obtiene el último tag creado en el repositorio
+          current_tag=$(git describe --tags --abbrev=0)
+          echo "Current tag: $current_tag"
+
+          # Obtiene el tag anterior al actual usando git rev-list
+          last_tag=$(git rev-list --tags --max-count=2 --abbrev-commit | tail -n 1)
           echo "Previous tag: $last_tag"
+
+          # Guardar el último tag en el entorno de GitHub Actions
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
       - name: Generar el changelog
         id: generate_changelog
         run: |
           # Obtener todos los commits entre el tag anterior y el actual
-          commits=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s (%an)")
-          echo "Previous tag: ${{env.last_tag}} // Current tag: ${{github.ref_name}}"
+          commits=$(git log ${{ env.last_tag }}..${{ github.ref_name }} --pretty=format:"- %s (%an, %h)")
+          echo "Previous tag: ${{ env.last_tag }} // Current tag: ${{ github.ref_name }}"
           echo "Changelog generado: $commits"
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Verificar el changelog generado
         run: |
+          # Verifica el changelog antes de crear la release
           echo "Changelog generado: ${{ env.commits }}"
 
       - name: Crear la release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }} # El tag actual
+          name: Release ${{ github.ref_name }} # Nombre de la release
           body: |
             **Changelog:**
-            ${{ env.commits }}
+            ${{ env.commits }}  # Incluir el changelog en el cuerpo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
