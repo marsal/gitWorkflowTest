@@ -15,21 +15,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Obtener el último tag
+      - name: Obtener el último tag anterior al actual
         id: get_last_tag
         run: |
-          last_tag=$(git describe --tags --abbrev=0 HEAD^)
+          if git describe --tags --abbrev=0 HEAD^ >/dev/null 2>&1; then
+            last_tag=$(git describe --tags --abbrev=0 HEAD^)
+          else
+            last_tag=""
+          fi
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
-      - name: Obtener commits desde el último tag
-        id: get_commits
+      - name: Generar el changelog desde el último tag
+        id: generate_changelog
         run: |
-          commits=$(git log ${{env.last_tag}}..HEAD --pretty=format:"- %s (%an)")
+          if [ -z "${{ env.last_tag }}" ]; then
+            commits=$(git log --pretty=format:"- %s (%an)")
+          else
+            commits=$(git log ${env.last_tag}..HEAD --pretty=format:"- %s (%an)")
+          fi
           echo "commits=$commits" >> $GITHUB_ENV
 
-      - name: Verificar commits generados
+      - name: Verificar el changelog generado
         run: |
-          echo "Commits: ${{ env.commits }}"
+          echo "Changelog generado: ${{ env.commits }}"
 
       - name: Crear la release
         uses: softprops/action-gh-release@v1
