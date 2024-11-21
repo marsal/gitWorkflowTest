@@ -18,7 +18,7 @@ jobs:
       - name: Obtener el último tag
         id: get_last_tag
         run: |
-          last_tag=$(git describe --tags --abbrev=0)
+          last_tag=$(git describe --tags --abbrev=0 HEAD^)
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
       - name: Obtener commits desde el último tag
