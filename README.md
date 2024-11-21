@@ -1,10 +1,7 @@
 # gitWorkflowTest
 
-v1.1.0
+v1.1.1
 
-Fix
-Post release tarea
-Content update
-New Content update
-
+bugfix
 Dependabot bump version
+
