@@ -6,3 +6,5 @@ Fix
 Post release tarea
 Content update
 New Content update
+
+Dependabot bump version
