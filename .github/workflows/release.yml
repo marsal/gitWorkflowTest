@@ -27,7 +27,7 @@ jobs:
         id: generate_changelog
         run: |
           # Obtener todos los commits entre el tag anterior y el actual
-          commits=$(git log ${env.last_tag}..${{ github.ref_name }} --pretty=format:"- %s (%an)")
+          commits=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s (%an)")
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Verificar el changelog generado
