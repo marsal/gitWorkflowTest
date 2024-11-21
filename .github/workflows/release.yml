@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -23,8 +24,12 @@ jobs:
       - name: Obtener commits desde el último tag
         id: get_commits
         run: |
-          commits=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an)")
+          commits=$(git log ${{env.last_tag}}..HEAD --pretty=format:"- %s (%an)")
           echo "commits=$commits" >> $GITHUB_ENV
+
+      - name: Verificar commits generados
+        run: |
+          echo "Commits: ${{ env.commits }}"
 
       - name: Crear la release
         uses: softprops/action-gh-release@v1
