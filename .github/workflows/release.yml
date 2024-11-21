@@ -10,22 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Obtener información del tag
-        id: get_tag
-        run: tag_name=$(git describe --tags --abbrev=0)
+
+      - name: Obtener el último tag
+        id: get_last_tag
+        run: |
+          last_tag=$(git describe --tags --abbrev=0)
+          echo "last_tag=$last_tag" >> $GITHUB_ENV
+
       - name: Obtener commits desde el último tag
         id: get_commits
         run: |
-          last_tag=$(github.tag_name)
-          commits=$(git log --pretty=format:%s --since="$last_tag" HEAD)
+          commits=$(git log ${last_tag}..HEAD --pretty=format:"- %s (%an)")
+          echo "commits=$commits" >> $GITHUB_ENV
+
       - name: Crear la release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.tag_name }}
-          release_name: Release ${{ github.tag_name }}
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
           body: |
             **Changelog:**
-            ${{ github.commits }}
+            ${{ env.commits }}
           draft: false
           prerelease: false
         env:
