@@ -29,7 +29,7 @@ jobs:
         id: generate_changelog
         run: |
           # Generar el changelog y guardarlo en un archivo temporal
-          changelog=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s [(%h)](https://github.com/${{ github.repository }}/commit/%H) (%an)")
+          changelog=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) (%an)")
           {
             echo 'changelog<<EOF'
             echo "$changelog"
