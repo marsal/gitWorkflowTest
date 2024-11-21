@@ -1,8 +1,10 @@
 # gitWorkflowTest
 
-v1.0.6
+v1.1.1
 
 Fix
 Post release tarea
 Content update
 New Content update
+
+bugfix
