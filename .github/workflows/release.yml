@@ -16,7 +16,7 @@ jobs:
       - name: Obtener commits desde el último tag
         id: get_commits
         run: |
-          last_tag=$(steps.get_tag.outputs.tag_name)
+          last_tag=$(github.tag_name)
           commits=$(git log --pretty=format:%s --since="$last_tag" HEAD)
       - name: Crear la release
         uses: actions/create-release@v1
