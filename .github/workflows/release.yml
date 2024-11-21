@@ -20,7 +20,6 @@ jobs:
         id: get_last_tag
         run: |
           git fetch --tags
-          git tag --list
           echo $(git tag --list --sort=-creatordate)
           last_tag=$(git tag --list --sort=-creatordate | sed -n '2p')
           echo "Previous tag: $last_tag"
