@@ -1,27 +1,30 @@
-name: Create and Release Tag
+name: Crear release al crear un tag
 
 on:
-  workflow_dispatch:
-    inputs:
-      release-tag-number:
-        description: "Enter the release-tag number"
-        required: true
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  create-tag:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      deployments: write
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Generate Release Tag
-        uses: mokhlesurr031/github-manual-release@v2.0.0
+      - uses: actions/checkout@v4
+      - name: Obtener información del tag
+        id: get_tag
+        run: tag_name=$(git describe --tags --abbrev=0)
+      - name: Obtener commits desde el último tag
+        id: get_commits
+        run: |
+          last_tag=$(steps.get_tag.outputs.tag_name)
+          commits=$(git log --pretty=format:%s --since="$last_tag" HEAD)
+      - name: Crear la release
+        uses: actions/create-release@v1
         with:
-          release-tag-number: ${{ github.event.inputs.release-tag-number }}
-          user-email: ${{ secrets.USER_EMAIL }}
-          user-name: ${{ secrets.USER_NAME }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.get_tag.outputs.tag_name }}
+          release_name: Release ${{ steps.get_tag.outputs.tag_name }}
+          body: |
+            **Changelog:**
+            ${{ steps.get_commits.outputs.commits }}
+          draft: false
+          prerelease: false
