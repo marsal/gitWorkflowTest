@@ -21,8 +21,8 @@ jobs:
       - name: Obtener el último tag anterior
         id: get_last_tag
         run: |
+          # Obtener el tag anterior
           last_tag=$(git tag --list --sort=-creatordate | sed -n '2p')
-          echo "Previous tag: $last_tag"
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
       - name: Generar changelog
