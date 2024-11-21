@@ -19,8 +19,8 @@ jobs:
       - name: Obtener el último tag anterior
         id: get_last_tag
         run: |
-          # Detectar el tag anterior al actual
           last_tag=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1))
+          echo "Previous tag: $last_tag"
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
       - name: Generar el changelog
@@ -28,6 +28,8 @@ jobs:
         run: |
           # Obtener todos los commits entre el tag anterior y el actual
           commits=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s (%an)")
+          echo "Previous tag: ${{env.last_tag}} // Current tag: ${{github.ref_name}}"
+          echo "Changelog generado: $commits"
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Verificar el changelog generado
