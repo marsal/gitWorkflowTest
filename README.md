@@ -2,6 +2,4 @@
 
 gitWorkflowTest
 
-v 0.0.3
-
-PR comment
+v 0.0.4

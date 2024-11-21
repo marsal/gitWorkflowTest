@@ -3,7 +3,7 @@ name: Crear release al crear un tag
 on:
   push:
     tags:
-      - "v*"
+      - "v*" # Detectar tags con formato semántico
 
 permissions:
   contents: write
@@ -13,26 +13,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - name: Obtener el último tag anterior al actual
+      - name: Obtener el último tag anterior
         id: get_last_tag
         run: |
-          if git describe --tags --abbrev=0 HEAD^ >/dev/null 2>&1; then
-            last_tag=$(git describe --tags --abbrev=0 HEAD^)
-          else
-            last_tag=""
-          fi
+          # Detectar el tag anterior al actual
+          last_tag=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1))
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
-      - name: Generar el changelog desde el último tag
+      - name: Generar el changelog
         id: generate_changelog
         run: |
-          if [ -z "${{ env.last_tag }}" ]; then
-            commits=$(git log --pretty=format:"- %s (%an)")
-          else
-            commits=$(git log ${env.last_tag}..HEAD --pretty=format:"- %s (%an)")
-          fi
+          # Obtener todos los commits entre el tag anterior y el actual
+          commits=$(git log ${env.last_tag}..${{ github.ref_name }} --pretty=format:"- %s (%an)")
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Verificar el changelog generado
