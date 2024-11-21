@@ -1,35 +1,48 @@
-name: Create Release
+name: Crear release al crear un tag
 
 on:
   push:
     tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*" # Detectar tags con formato semántico
+
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Create Release
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Changelog
-        uses: Bullrich/generate-release-changelog@master
-        id: Changelog
-        env:
-          REPO: ${{ github.repository }}
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+
+      - name: Obtener el último tag anterior
+        id: get_last_tag
+        run: |
+          last_tag=$(git tag --list --sort=-creatordate | sed -n '2p')
+          echo "Previous tag: $last_tag"
+          echo "last_tag=$last_tag" >> $GITHUB_ENV
+
+      - name: Generar changelog
+        id: generate_changelog
+        run: |
+          # Generar el changelog y guardarlo en un archivo temporal
+          changelog=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s [(%h)](https://github.com/${{ github.repository }}/commit/%H) (%an)")
+          {
+            echo 'changelog<<EOF'
+            echo "$changelog"
+            echo 'EOF'
+            } >> $GITHUB_ENV
+
+      - name: Crear la release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
-            ${{ steps.Changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
+            **Changelog:**
+            ${{env.changelog}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
