@@ -25,18 +25,13 @@ jobs:
           echo "Previous tag: $last_tag"
           echo "last_tag=$last_tag" >> $GITHUB_ENV
 
-      - name: Generar el changelog
+      - name: Generar changelog
         id: generate_changelog
         run: |
-          # Obtener todos los commits entre el tag anterior y el actual
-          commits=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s [(%h)](https://github.com/${{ github.repository }}/commit/%H) (%an)")
-          echo "Previous tag: ${{env.last_tag}} // Current tag: ${{github.ref_name}}"
-          printf "%s" "$commits" >> $GITHUB_ENV
-          echo "Changelog generado: $commits"
-
-      - name: Verificar el changelog generado
-        run: |
-          echo "Changelog generado: ${{ env.commits }}"
+          # Generar el changelog y guardarlo en un archivo temporal
+          changelog=$(git log ${{env.last_tag}}..${{ github.ref_name }} --pretty=format:"- %s [(%h)](https://github.com/${{ github.repository }}/commit/%H) (%an)")
+          echo "$changelog" > changelog.txt
+          cat changelog.txt # Mostrar el changelog en los logs de GitHub Actions
 
       - name: Crear la release
         uses: softprops/action-gh-release@v1
@@ -45,6 +40,6 @@ jobs:
           name: Release ${{ github.ref_name }}
           body: |
             **Changelog:**
-            ${{ env.commits }}
+            $(cat changelog.txt)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
